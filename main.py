@@ -2,7 +2,11 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import os
+import time
+#from Comparator import *
 
+now = time.ctime()
+print(now)
 class Scraper():
 
     def menu(self):
@@ -66,6 +70,7 @@ class Scraper():
 
     def scraping(self):
         # User search
+        global product_name
         product_name = input("\nProducto: ")
         # Clean the user input
         cleaned_name = product_name.replace(" ", "-").lower()
@@ -73,10 +78,10 @@ class Scraper():
         urls = [self.base_url + cleaned_name]
 
         page_number = 50
+
         for i in range(0, 10000, 50):
             urls.append(f"{self.base_url}{cleaned_name}_Desde_{page_number + 1}_NoIndex_True")
             page_number += 50
-
         # create a list to save the data
         self.data = []
         # create counter
@@ -127,11 +132,22 @@ class Scraper():
                 # save the dictionaries in a list
                 self.data.append(post_data)
                 c += 1
-
     def export_to_csv(self):
+        try:
+            try:
+                os.rename("data/mercadolibre_data.csv", "data/mercadolibre_data_old.csv")
+            except FileExistsError:
+                os.remove("data/mercadolibre_data_old.csv")
+                os.rename("data/mercadolibre_data.csv", "data/mercadolibre_data_old.csv")
+        except FileExistsError:
+            os.remove("data/mercadolibre_data_old.csv")
+            print("data_old elimindado")
+            os.rename("data/mercadolibre_data.csv", "data/mercadolibre_data_old.csv")
+        except FileNotFoundError:
+            print("el archivo no existe creeando.... ")            
         # export to a csv file
         df = pd.DataFrame(self.data)
-        df.to_csv(r"data/mercadolibre_scraped_data.csv", sep=";")
+        df.to_csv(r"data/mercadolibre_data.csv", sep=";")
 
 if __name__ == "__main__":
     s = Scraper()
